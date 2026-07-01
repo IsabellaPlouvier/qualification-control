@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qualification Control — HMH</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙</text></svg>" />
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="logo">
+      <span>⚓</span>
+      Qualification Control
+    </div>
+    <nav id="main-nav">
+      <a href="#overview" data-hash="overview">📋 Area Overview</a>
+      <a href="#alerts" data-hash="alerts">🔔 Alerts</a>
+      <a href="#drake" data-hash="drake">🚢 Drake</a>
+      <a href="#personnel" data-hash="personnel">👥 Personnel</a>
+    </nav>
+  </header>
+
+  <main class="app-main" id="app-main">
+    <p>Loading...</p>
+  </main>
+
+  <!-- MODAL OVERLAY -->
+  <div class="modal-overlay" id="modal-overlay" onclick="window.closeModal()"></div>
+  <div class="modal-container" id="modal-container"></div>
+
+  <!-- CELL POPUP -->
+  <div class="cell-popup" id="cell-popup" style="display:none"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script src="app2.js"></script>
+  <script src="app3.js"></script>
+
+</body>
+</html>
