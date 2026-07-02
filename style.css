@@ -148,8 +148,9 @@ nav a.active { background: rgba(255,255,255,0.18); color: #fff; }
 .overview-table thead tr { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
 .overview-table thead th {
   color: #475569; font-weight: 600; padding: 9px 6px;
-  text-align: center; white-space: nowrap; font-size: 11.5px;
-  border-right: 1px solid #e2e8f0; overflow: hidden; text-overflow: ellipsis;
+  text-align: center; white-space: normal; font-size: 11.5px;
+  border-right: 1px solid #e2e8f0; word-break: break-word; overflow-wrap: anywhere;
+  line-height: 1.35; vertical-align: middle;
 }
 .overview-table thead th:last-child { border-right: none; }
 .overview-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
@@ -160,9 +161,10 @@ nav a.active { background: rgba(255,255,255,0.18); color: #fff; }
 .overview-table tbody tr:hover { background: #eff6ff !important; }
 
 .overview-table tbody td {
-  padding: 7px 6px; text-align: center; white-space: nowrap;
+  padding: 8px 6px; text-align: center; white-space: normal;
   border-right: 1px solid #f1f5f9; cursor: pointer;
-  overflow: hidden; text-overflow: ellipsis;
+  word-break: break-word; overflow-wrap: anywhere;
+  line-height: 1.35; vertical-align: middle;
 }
 .overview-table tbody td.col-name { text-align: left; padding-left: 14px; cursor: default; }
 .overview-table tbody td:last-child { cursor: default; border-right: none; }
@@ -426,12 +428,11 @@ nav a.active { background: rgba(255,255,255,0.18); color: #fff; }
 }
 .col-delete-btn:hover { background: rgba(220,38,38,0.7); }
 
-/* SISPAT badges */
+/* Sispat badges */
 .sispat-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
 .sispat-constellation { background: #f3e8ff; color: #7e22ce; }
 .sispat-foresea       { background: #dbeafe; color: #1d4ed8; }
 .sispat-hmh           { background: #ccfbf1; color: #0f766e; }
-.sispat-inativo       { background: #f1f5f9; color: #64748b; }
 .sispat-inactive      { background: #f1f5f9; color: #64748b; }
 .sispat-orange        { background: #ffedd5; color: #c2410c; }
 .sispat-green         { background: #D9EBDA; color: #15803d; }

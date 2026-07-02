@@ -46,28 +46,28 @@ const DATA = {
 
   requirements: [
     // Personal
-    { id: 'ficha_registro',          name: 'Ficha de Registro',              shortName: 'F.Registro', category: 'personal',   hasExpiry: false, alertDays: 0,  order: 0 },
-    { id: 'ctp',                     name: 'Carteira de Trabalho (CTP)',      shortName: 'CTP',        category: 'personal',   hasExpiry: false, alertDays: 0,  order: 1 },
-    { id: 'passaporte',              name: 'Passaporte',                      shortName: 'Passport',   category: 'personal',   hasExpiry: true,  alertDays: 90, order: 2 },
-    { id: 'crea',                    name: 'Quitação CREA',                   shortName: 'CREA',       category: 'personal',   hasExpiry: true,  alertDays: 60, order: 3, perPersonValidity: true },
+    { id: 'ficha_registro',          name: 'Employment Record',               shortName: 'Record',     category: 'personal',   hasExpiry: false, alertDays: 0,  order: 0 },
+    { id: 'ctp',                     name: 'Work Card (CTP)',                 shortName: 'CTP',        category: 'personal',   hasExpiry: false, alertDays: 0,  order: 1 },
+    { id: 'passaporte',              name: 'Passport',                        shortName: 'Passport',   category: 'personal',   hasExpiry: true,  alertDays: 90, order: 2 },
+    { id: 'crea',                    name: 'CREA Clearance',                  shortName: 'CREA',       category: 'personal',   hasExpiry: true,  alertDays: 60, order: 3, perPersonValidity: true },
     // Employment
-    { id: 'contrato_trabalho',       name: 'Contrato de Trabalho',           shortName: 'Contract',   category: 'employment', hasExpiry: false, alertDays: 0,  order: 4 },
+    { id: 'contrato_trabalho',       name: 'Employment Contract',            shortName: 'Contract',   category: 'employment', hasExpiry: false, alertDays: 0,  order: 4 },
     // Training (HSSE)
-    { id: 'nr35',                    name: 'NR-35 Trabalho em Altura',        shortName: 'NR-35',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 5 },
-    { id: 'nr12',                    name: 'NR-12 Segurança em Máquinas',     shortName: 'NR-12',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 6 },
-    { id: 'nr10',                    name: 'NR-10 Segurança em Eletricidade', shortName: 'NR-10',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 7 },
-    { id: 'nr33',                    name: 'NR-33 Espaço Confinado',          shortName: 'NR-33',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 8 },
+    { id: 'nr35',                    name: 'NR-35 Working at Height',         shortName: 'NR-35',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 5 },
+    { id: 'nr12',                    name: 'NR-12 Machine Safety',            shortName: 'NR-12',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 6 },
+    { id: 'nr10',                    name: 'NR-10 Electrical Safety',         shortName: 'NR-10',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 7 },
+    { id: 'nr33',                    name: 'NR-33 Confined Space',            shortName: 'NR-33',      category: 'training',   hasExpiry: true,  alertDays: 90, order: 8 },
     { id: 'huet',                    name: 'HUET / OPITO',                    shortName: 'HUET',       category: 'training',   hasExpiry: true,  alertDays: 90, order: 9 },
-    { id: 'hse_offshore',            name: 'HSE Offshore Básico',             shortName: 'HSE Off.',   category: 'training',   hasExpiry: true,  alertDays: 90, order: 10 },
-    { id: 'cbsp',                    name: 'CBSP / Salva-vidas',              shortName: 'CBSP',       category: 'training',   hasExpiry: true,  alertDays: 90, order: 11 },
-    { id: 'constellation_training',  name: 'Treinamento Constellation',       shortName: 'Constell.',  category: 'training',   hasExpiry: true,  alertDays: 60, order: 12 },
+    { id: 'hse_offshore',            name: 'Basic Offshore HSE',              shortName: 'HSE Off.',   category: 'training',   hasExpiry: true,  alertDays: 90, order: 10 },
+    { id: 'cbsp',                    name: 'CBSP / Lifesaving',               shortName: 'CBSP',       category: 'training',   hasExpiry: true,  alertDays: 90, order: 11 },
+    { id: 'constellation_training',  name: 'Constellation Training',          shortName: 'Constell.',  category: 'training',   hasExpiry: true,  alertDays: 60, order: 12 },
     // Health
-    { id: 'aso_periodico',           name: 'ASO Periódico',                   shortName: 'ASO',        category: 'health',     hasExpiry: true,  alertDays: 90, order: 13 },
+    { id: 'aso_periodico',           name: 'Periodic Medical Exam (ASO)',     shortName: 'ASO',        category: 'health',     hasExpiry: true,  alertDays: 90, order: 13 },
     { id: 'aso_offshore',            name: 'ASO Offshore',                    shortName: 'ASO Off.',   category: 'health',     hasExpiry: true,  alertDays: 90, order: 14 },
     // Customer Specific
-    { id: 'rnm',                     name: 'RNM (Regras de Negócio)',         shortName: 'RNM',        category: 'customer',   hasExpiry: false, alertDays: 0,  order: 15 },
-    { id: 'regras_ouro',             name: 'Regras de Ouro',                  shortName: 'R.Ouro',     category: 'customer',   hasExpiry: false, alertDays: 0,  order: 16 },
-    { id: 'declaracao_cbsp',         name: 'Declaração CBSP',                 shortName: 'D.CBSP',     category: 'customer',   hasExpiry: false, alertDays: 0,  order: 17 }
+    { id: 'rnm',                     name: 'RNM (Business Rules)',            shortName: 'RNM',        category: 'customer',   hasExpiry: false, alertDays: 0,  order: 15 },
+    { id: 'regras_ouro',             name: 'Golden Rules',                    shortName: 'G.Rules',    category: 'customer',   hasExpiry: false, alertDays: 0,  order: 16 },
+    { id: 'declaracao_cbsp',         name: 'CBSP Declaration',                shortName: 'CBSP Decl.', category: 'customer',   hasExpiry: false, alertDays: 0,  order: 17 }
   ],
 
   // Which requirements are visible per area (null = all non-hmh reqs)
@@ -84,7 +84,7 @@ const DATA = {
   employees: [
     {
       id: 1, name: 'Adriano Barbosa Pimentel', group: 'transactional', discipline: 'ele', regime: 'offshore', country: 'BR', active: true,
-      cpfPassport: '156.253.517-08', email: 'Adriano.Pimentel@hmhw.com', funcao: 'Engenheiro Eletrônico de Serviços de Campo',
+      cpfPassport: '156.253.517-08', email: 'Adriano.Pimentel@hmhw.com', funcao: 'Field Service Electronics Engineer',
       sispat: 'constellation', idSispat: '70732310', birthDate: '1996-02-22', hiringDate: '2022-07-18', rg: '25.497.977-6',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -100,7 +100,7 @@ const DATA = {
     },
     {
       id: 2, name: 'Felipe Matias Leite de Oliveira', group: 'transactional', discipline: 'ele', regime: 'offshore', country: 'BR', active: true,
-      cpfPassport: '115.265.157-92', email: 'Felipe.Matias@hmhw.com', funcao: 'Engenheiro Eletrônico de Serviços de Campo',
+      cpfPassport: '115.265.157-92', email: 'Felipe.Matias@hmhw.com', funcao: 'Field Service Electronics Engineer',
       sispat: 'foresea', idSispat: '42261877', birthDate: '1987-10-07', hiringDate: '2013-04-01', rg: '12.369.423-4',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -115,7 +115,7 @@ const DATA = {
     },
     {
       id: 3, name: 'João Paulo Oliveira Vilela', group: 'transactional', discipline: 'ele', regime: 'offshore', country: 'BR', active: true,
-      cpfPassport: '065.258.706-23', email: 'Joao.Paulo.Vilela@hmhw.com', funcao: 'Engenheiro Eletrônico de Serviços de Campo',
+      cpfPassport: '065.258.706-23', email: 'Joao.Paulo.Vilela@hmhw.com', funcao: 'Field Service Electronics Engineer',
       sispat: 'foresea', idSispat: '49459692', birthDate: '1984-09-08', hiringDate: '2014-03-10', rg: 'MG-13.927.434',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -129,7 +129,7 @@ const DATA = {
     },
     {
       id: 4, name: 'Jose Geraldo Leite Junior', group: 'transactional', discipline: 'mec', regime: 'offshore', country: 'BR', active: true,
-      cpfPassport: '294.063.538-22', email: 'Jose.Junior@hmhw.com', funcao: 'Engenheiro Mecânico de Serviços de Campo',
+      cpfPassport: '294.063.538-22', email: 'Jose.Junior@hmhw.com', funcao: 'Field Service Mechanical Engineer',
       sispat: 'foresea', idSispat: '45466483', birthDate: '1981-04-29', hiringDate: '2010-06-07', rg: '30.382.187-5',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -144,7 +144,7 @@ const DATA = {
     },
     {
       id: 5, name: 'Lucas Goncalves Maciel', group: 'transactional', discipline: 'ele', regime: 'offshore', country: 'BR', active: true,
-      cpfPassport: '096.757.766-76', email: 'Lucas.Maciel@hmhw.com', funcao: 'Engenheiro Eletrônico de Serviços de Campo',
+      cpfPassport: '096.757.766-76', email: 'Lucas.Maciel@hmhw.com', funcao: 'Field Service Electronics Engineer',
       sispat: 'hmh', idSispat: '47440696', birthDate: '1990-04-24', hiringDate: '2014-03-10', rg: 'MG-14.434.495',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -158,7 +158,7 @@ const DATA = {
     },
     {
       id: 6, name: 'Diego Gabriel Silva da Rocha', group: 'transactional', discipline: 'ele', regime: 'offshore', country: 'BR', active: true,
-      cpfPassport: '150.202.467-51', email: 'Diego.Rocha@hmhw.com', funcao: 'Técnico Eletrônico de Serviços de Campo',
+      cpfPassport: '150.202.467-51', email: 'Diego.Rocha@hmhw.com', funcao: 'Field Service Electronics Technician',
       sispat: 'constellation', idSispat: '71939274', birthDate: '1994-11-13', hiringDate: '2024-02-05', rg: '27.853.680-0',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -201,7 +201,7 @@ const DATA = {
     },
     {
       id: 9, name: 'Carlos Eduardo Fonseca', group: 'csa', discipline: 'mec', regime: 'onshore', country: 'BR', active: true,
-      cpfPassport: '322.541.980-11', email: 'Carlos.Fonseca@hmhw.com', funcao: 'Coordenador de Serviços de Campo',
+      cpfPassport: '322.541.980-11', email: 'Carlos.Fonseca@hmhw.com', funcao: 'Field Service Coordinator',
       sispat: 'hmh', idSispat: '61005530', birthDate: '1980-05-12', hiringDate: '2008-11-03', rg: '18.774.320-1',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -213,7 +213,7 @@ const DATA = {
     },
     {
       id: 10, name: 'Marcelo Augusto Ribeiro', group: 'overhaul', discipline: 'mec', regime: 'onshore', country: 'BR', active: true,
-      cpfPassport: '441.882.074-33', email: 'Marcelo.Ribeiro@hmhw.com', funcao: 'Técnico de Overhaul',
+      cpfPassport: '441.882.074-33', email: 'Marcelo.Ribeiro@hmhw.com', funcao: 'Overhaul Technician',
       sispat: 'hmh', idSispat: '59872014', birthDate: '1988-09-30', hiringDate: '2015-02-16', rg: '33.291.057-8',
       requirements: {
         ficha_registro: { status: 'ok' }, contrato_trabalho: { status: 'ok' }, ctp: { status: 'ok' },
@@ -253,11 +253,11 @@ const DATA = {
 
   // HMH company documents — used in the HMH area table (single "General Documents" row)
   hmhDocuments: [
-    { id: 'hmh1', name: 'Licença de Operação HMH Brasil', category: 'hmh', hasExpiry: true, expiry: '2027-12-31', alertDays: 90, obs: 'Renovar junto à ANP' },
-    { id: 'hmh2', name: 'Certificado ISO 9001',           category: 'hmh', hasExpiry: true, expiry: '2026-09-15', alertDays: 60, obs: 'Auditoria agendada para agosto' },
-    { id: 'hmh3', name: 'Alvará de Funcionamento',        category: 'hmh', hasExpiry: true, expiry: '2026-12-31', alertDays: 90, obs: '' },
-    { id: 'hmh4', name: 'Contrato Petrobras Vigente',     category: 'hmh', hasExpiry: true, expiry: '2028-06-30', alertDays: 180, obs: 'Contrato Master' },
-    { id: 'hmh5', name: 'Seguro de Responsabilidade Civil', category: 'hmh', hasExpiry: true, expiry: '2026-07-31', alertDays: 60, obs: 'Renovação em andamento' }
+    { id: 'hmh1', name: 'HMH Brazil Operating License', category: 'hmh', hasExpiry: true, expiry: '2027-12-31', alertDays: 90, obs: 'Renew with ANP' },
+    { id: 'hmh2', name: 'ISO 9001 Certificate',         category: 'hmh', hasExpiry: true, expiry: '2026-09-15', alertDays: 60, obs: 'Audit scheduled for August' },
+    { id: 'hmh3', name: 'Business Operating Permit',    category: 'hmh', hasExpiry: true, expiry: '2026-12-31', alertDays: 90, obs: '' },
+    { id: 'hmh4', name: 'Active Petrobras Contract',    category: 'hmh', hasExpiry: true, expiry: '2028-06-30', alertDays: 180, obs: 'Master contract' },
+    { id: 'hmh5', name: 'Civil Liability Insurance',    category: 'hmh', hasExpiry: true, expiry: '2026-07-31', alertDays: 60, obs: 'Renewal in progress' }
   ],
 
   // HMH "General Documents" row — stores statuses for each hmhDocument as if it were an employee row
@@ -314,8 +314,8 @@ const DATA = {
     { id: 'cpfPassport', label: 'CPF / Passport',type: 'text'  },
     { id: 'email',       label: 'Email',         type: 'text'  },
     { id: 'funcao',      label: 'Position',      type: 'text'  },
-    { id: 'sispat',      label: 'SISPAT Status', type: 'sispat'},
-    { id: 'idSispat',    label: 'SISPAT ID',     type: 'text'  },
+    { id: 'sispat',      label: 'Sispat Status', type: 'sispat'},
+    { id: 'idSispat',    label: 'Sispat ID',     type: 'text'  },
     { id: 'birthDate',   label: 'Date of Birth', type: 'date'  },
     { id: 'hiringDate',  label: 'Hire Date',     type: 'date'  },
     { id: 'rg',          label: 'RG',            type: 'text'  }

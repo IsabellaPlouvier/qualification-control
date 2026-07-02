@@ -46,7 +46,7 @@ function getDrakeAlertItems(req) {
     const days = doc.expiry ? daysUntil(doc.expiry) : null;
     let status = 'ok';
     if (days !== null) {
-        for (const item of alertItems) {
+      if (days < 0) status = 'expired';
       else if (days <= (doc.alertDays || 90)) status = 'expiring';
     }
     if (!['expired','expiring'].includes(status)) continue;
@@ -95,12 +95,12 @@ function renderDrake() {
   let html = `<div class="page-title">
     <span>🚢</span> Drake Requisitions
     <div class="page-title-actions">
-      <button class="btn btn-primary" onclick="window.openAddDrakeModal()">➕ New Requisition</button>
+      <button class="btn btn-primary" onclick="window.openAddDrakeModal()">➕ Add Requisition</button>
     </div>
   </div>`;
 
   if (!reqs.length) {
-    html += `<div class="empty-state"><div class="empty-icon">🚢</div><p>No requisitions created yet.</p></div>`;
+    html += `<div class="empty-state"><div class="empty-icon">🚢</div><p>No requisitions found.</p></div>`;
     return html;
   }
 
@@ -110,6 +110,10 @@ function renderDrake() {
     const cutoff = getDrakeCutoff(req);
     const badgeCls = clientBadgeClass(req.client);
     const alertCount = alertItems.length;
+    const activeCount = req.employees.filter(empId => {
+      const emp = getEmp(empId);
+      return emp && emp.active !== false;
+    }).length;
 
     html += `<div class="drake-card" onclick="window.navigate('drake/${req.id}')">
       <div class="drake-card-title">${req.name}</div>
@@ -119,12 +123,12 @@ function renderDrake() {
       </div>
       <div class="drake-card-stats">
         <div class="drake-stat">
-          <span class="drake-stat-number">${req.employees.length}</span>
+          <span class="drake-stat-number">${activeCount}</span>
           <span class="drake-stat-label">Employees</span>
         </div>
         <div class="drake-stat">
           <span class="drake-stat-number">${req.requiredDocs.length + (req.hmhDocs||[]).length}</span>
-          <span class="drake-stat-label">Required docs</span>
+          <span class="drake-stat-label">Required Documents</span>
         </div>
       </div>
       ${cutoff ? `<div class="drake-cutoff">Cutoff date: <strong>${cutoff.toLocaleDateString('en-GB')}</strong></div>`
@@ -138,7 +142,7 @@ function renderDrake() {
 // ─── DRAKE DETAIL ─────────────────────────────────────────────────────────────
 function renderDrakeDetail(reqId) {
   const req = DATA.drakeRequisitions.find(r => r.id === reqId);
-  if (!req) return `<button class="card-back-btn" onclick="window.navigate('drake')">← Back</button><p>Requisition not found.</p>`;
+  if (!req) return `<button class="card-back-btn" onclick="window.navigate('drake')">← Back to Requisitions</button><p>Requisition not found.</p>`;
 
   const cutoff = getDrakeCutoff(req);
   const badgeCls = clientBadgeClass(req.client);
@@ -151,8 +155,8 @@ function renderDrakeDetail(reqId) {
     <div class="drake-detail-title">🚢 ${req.name}</div>
     <span class="client-badge ${badgeCls}">${req.client}</span>
     <div class="cutoff-box">Cutoff date: <strong>${cutoff ? cutoff.toLocaleDateString('en-GB') : '—'}</strong></div>
-    <button class="btn btn-ghost btn-sm" onclick="window.openManageEmpsDrake('${reqId}')">👥 Manage employees</button>
-    <button class="btn btn-ghost btn-sm" onclick="window.openAddAlertManual('${reqId}')">➕ Add manually</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.openManageEmpsDrake('${reqId}')">👥 Manage Employees</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.openAddAlertManual('${reqId}')">➕ Add Manual Alert</button>
   </div>`;
 
   // ── Alert list ──
@@ -162,12 +166,12 @@ function renderDrakeDetail(reqId) {
     </div>
     <div class="table-wrapper"><table class="drake-pending-table"><thead><tr>
       <th>Employee</th><th>Document</th>
-      <th>Current expiry</th><th style="color:#16a34a;font-weight:700">New expiry</th>
-      <th>Doc status</th><th>Renewal status</th><th style="text-align:center">✓</th><th></th>
+      <th>Current Expiry Date</th><th style="color:#16a34a;font-weight:700">New Expiry Date</th>
+      <th>Document Status</th><th>Renewal Status</th><th style="text-align:center">Sent</th><th></th>
     </tr></thead><tbody>`;
 
   if (!alertItems.length) {
-    html += `<tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8">✅ No alerts for this requisition.</td></tr>`;
+    html += `<tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8">✅ No alerts found for this requisition.</td></tr>`;
   }
 
   for (const item of alertItems) {
@@ -195,7 +199,7 @@ function renderDrakeDetail(reqId) {
       <td>${statusBadge}</td>
       <td>${renewalBadgeHtml}</td>
       <td style="text-align:center">
-        <button class="btn btn-ghost btn-sm" title="Marcar como enviado ao Drake" 
+        <button class="btn btn-ghost btn-sm" title="Mark as sent to Drake" 
           onclick="window.checkDrakeItem('${reqId}','${empKey}','${item.reqId}')">✅</button>
       </td>
       <td>
@@ -214,7 +218,7 @@ function renderDrakeDetail(reqId) {
     </div>
     <div class="history-body" style="display:none">
     <div class="table-wrapper"><table class="drake-pending-table"><thead><tr>
-      <th>Employee</th><th>Document</th><th>New expiry</th><th>Added on</th><th>Sent on</th><th>Comment</th>
+      <th>Employee</th><th>Document</th><th>New Expiry Date</th><th>Added On</th><th>Sent On</th><th>Comment</th>
     </tr></thead><tbody>`;
 
   if (!history.length) {
@@ -289,7 +293,7 @@ window.checkDrakeItem = function(reqId, empId, docReqId) {
 };
 
 window.removeDrakeAlert = function(reqId, empId, docReqId) {
-  if (!confirm('Remove this alert from the list?')) return;
+  if (!confirm('Are you sure you want to remove this alert from the requisition list?')) return;
   const req = DATA.drakeRequisitions.find(r => r.id === reqId);
   if (!req) return;
   const empIdParsed = empId === 'hmh' ? 'hmh' : parseInt(empId);
@@ -307,18 +311,18 @@ window.openAddAlertManual = function(reqId) {
     <button class="modal-close" onclick="window.closeModal()">×</button></div>
   <div class="modal-body">
     <div class="form-group"><label>Employee</label><select id="am-emp">
-      <option value="">— Select —</option>
+      <option value="">Select...</option>
       ${activeEmployees.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}
     </select></div>
     <div class="form-group"><label>Document</label><select id="am-req">
-      <option value="">— Select —</option>
+      <option value="">Select...</option>
       ${req.requiredDocs.map(rId => { const r = getReq(rId); return r ? `<option value="${rId}">${r.name}</option>` : ''; }).join('')}
     </select></div>
-    <div class="form-group"><label>New expiry</label><input type="date" id="am-expiry"></div>
+    <div class="form-group"><label>New Expiry Date</label><input type="date" id="am-expiry"></div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveAlertManual('${reqId}')">Add</button>
+    <button class="btn btn-primary" onclick="window.saveAlertManual('${reqId}')">Add Alert</button>
   </div>`;
   window.openModal(html);
 };
@@ -328,7 +332,7 @@ window.saveAlertManual = function(reqId) {
   if (!req) return;
   const empId = parseInt(document.getElementById('am-emp').value);
   const docReqId = document.getElementById('am-req').value;
-  if (!empId || !docReqId) { alert('Select employee and document.'); return; }
+  if (!empId || !docReqId) { alert('Please select an employee and a document.'); return; }
   req.pendingUpdates.push({
     id: 'pu' + Date.now(),
     empId, reqId: docReqId,
@@ -346,12 +350,12 @@ window.openAddDrakeModal = function() {
   const activeEmployees = [...DATA.employees]
     .filter(e => e.active !== false)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  const html = `<div class="modal-header"><h3>➕ New Drake Requisition</h3>
+  const html = `<div class="modal-header"><h3>➕ Add Drake Requisition</h3>
     <button class="modal-close" onclick="window.closeModal()">×</button></div>
   <div class="modal-body">
     <div class="form-row">
-      <div class="form-group"><label>Requisition Name *</label><input type="text" id="dr-name" placeholder="Ex: GOLD - REQ 10199"></div>
-      <div class="form-group"><label>Client *</label><input type="text" id="dr-client" placeholder="Ex: Constellation, Foresea"></div>
+      <div class="form-group"><label>Requisition Name *</label><input type="text" id="dr-name" placeholder="e.g. GOLD - REQ 10199"></div>
+      <div class="form-group"><label>Client *</label><input type="text" id="dr-client" placeholder="e.g. Constellation, Foresea"></div>
     </div>
 
     <div class="form-group" style="margin-bottom:6px"><label>👥 Employees</label>
@@ -360,7 +364,7 @@ window.openAddDrakeModal = function() {
           style="font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:4px;flex:1;outline:none">
         <select id="dr-emp-area-filter" onchange="window.filterDrakeEmps()"
           style="font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:4px;outline:none">
-          <option value="">All groups</option>
+          <option value="">All Groups</option>
           ${DATA.groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
         </select>
       </div>
@@ -381,7 +385,7 @@ window.openAddDrakeModal = function() {
           style="font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:4px;flex:1;outline:none">
         <select id="dr-req-cat-filter" onchange="window.filterDrakeReqs()"
           style="font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:4px;outline:none">
-          <option value="">All categories</option>
+          <option value="">All Categories</option>
           ${Object.entries(DATA.categoryLabels).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
         </select>
       </div>
@@ -405,7 +409,7 @@ window.openAddDrakeModal = function() {
   </div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveDrakeReq()">Create Requisition</button>
+    <button class="btn btn-primary" onclick="window.saveDrakeReq()">Add Requisition</button>
   </div>`;
   window.openModal(html, true);
 };
@@ -433,7 +437,7 @@ window.filterDrakeReqs = function() {
 window.saveDrakeReq = function() {
   const name = document.getElementById('dr-name').value.trim();
   const client = document.getElementById('dr-client').value.trim();
-  if (!name || !client) { alert('Name and client are required.'); return; }
+  if (!name || !client) { alert('Please enter a requisition name and a client.'); return; }
   const employees = [...document.querySelectorAll('.dr-emp-cb:checked')].map(cb => parseInt(cb.value));
   const requiredDocs = [...document.querySelectorAll('.dr-req-cb:checked')].map(cb => cb.value);
   const hmhDocs = [...document.querySelectorAll('.dr-hmh-cb:checked')].map(cb => cb.value);
@@ -456,7 +460,7 @@ window.openManageEmpsDrake = function(reqId) {
         style="font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:4px;flex:1;outline:none">
       <select id="me-area-filter" onchange="window.filterManageEmps()"
         style="font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:4px;outline:none">
-        <option value="">All groups</option>
+        <option value="">All Groups</option>
         ${DATA.groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
       </select>
     </div>
@@ -472,7 +476,7 @@ window.openManageEmpsDrake = function(reqId) {
   </div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveEmpsDrake('${reqId}')">Save</button>
+    <button class="btn btn-primary" onclick="window.saveEmpsDrake('${reqId}')">Save Changes</button>
   </div>`;
   window.openModal(html);
 };

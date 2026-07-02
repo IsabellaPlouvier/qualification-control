@@ -13,18 +13,28 @@ function getEmpColVal(emp, colId) {
   return emp[colId] || '';
 }
 
+function getEmpFilterVal(emp, colId) {
+  if (colId === 'area') return emp.group || '';
+  if (colId === 'sispat') return emp.sispat || '';
+  return getEmpColVal(emp, colId);
+}
+
 function renderPersonnel() {
   const cols = DATA.personnelColumns || [];
   const filters = window._personnelFilters || {};
   const sort = window._personnelSort;
 
-  let emps = [...DATA.employees];
+  let emps = DATA.employees.filter(e => e.active !== false);
 
   // Filter
   for (const col of cols) {
     const fval = (filters[col.id] || '').toLowerCase();
     if (!fval) continue;
-    emps = emps.filter(e => getEmpColVal(e, col.id).toLowerCase().includes(fval));
+    emps = emps.filter(e => {
+      const raw = (getEmpFilterVal(e, col.id) || '').toString().toLowerCase();
+      if (col.id === 'area' || col.id === 'sispat') return raw === fval;
+      return raw.includes(fval);
+    });
   }
 
   // Sort
@@ -35,18 +45,13 @@ function renderPersonnel() {
       return av < bv ? -sort.dir : av > bv ? sort.dir : 0;
     });
   }
-  emps.sort((a, b) => {
-    if (a.active === false && b.active !== false) return 1;
-    if (a.active !== false && b.active === false) return -1;
-    return 0;
-  });
-
   let html = `<div class="page-title">
-    <span>👥</span> Personnel Info
+    <span>👥</span> Personnel Information
     <div class="page-title-actions">
-      <button class="btn btn-ghost" onclick="window.openManageSispat()">🏷️ SISPAT</button>
-      <button class="btn btn-ghost" onclick="window.openAddColumnModal()">➕ Column</button>
-      <button class="btn btn-primary" onclick="window.openAddEmpPersonnelModal()">➕ Employee</button>
+      <button class="btn btn-ghost" onclick="window.openInactiveModal()">👁 View Inactive</button>
+      <button class="btn btn-ghost" onclick="window.openManageSispat()">🏷️ Manage Sispat</button>
+      <button class="btn btn-ghost" onclick="window.openAddColumnModal()">➕ Add Column</button>
+      <button class="btn btn-primary" onclick="window.openAddEmpPersonnelModal()">➕ Add Employee</button>
     </div>
   </div>`;
 
@@ -63,14 +68,26 @@ function renderPersonnel() {
   html += `<th>Actions</th></tr>`;
   html += `<tr class="filter-row-p">`;
   for (const col of cols) {
-    html += `<td><input placeholder="Filter..." value="${filters[col.id]||''}"
-      oninput="window.personnelFilter('${col.id}',this.value)"></td>`;
+    if (col.id === 'area') {
+      html += `<td><select onchange="window.personnelFilter('${col.id}',this.value)">
+        <option value="">All</option>
+        ${DATA.groups.map(g => `<option value="${g.id}" ${filters[col.id]===g.id?'selected':''}>${g.name}</option>`).join('')}
+      </select></td>`;
+    } else if (col.id === 'sispat') {
+      html += `<td><select onchange="window.personnelFilter('${col.id}',this.value)">
+        <option value="">All</option>
+        ${DATA.sispatValues.map(s => `<option value="${s.id}" ${filters[col.id]===s.id?'selected':''}>${s.label}</option>`).join('')}
+      </select></td>`;
+    } else {
+      html += `<td><input placeholder="Filter" value="${filters[col.id]||''}"
+        oninput="window.personnelFilter('${col.id}',this.value)"></td>`;
+    }
   }
   html += `<td></td></tr>`;
   html += `</thead><tbody>`;
 
   if (!emps.length) {
-    html += `<tr><td colspan="${cols.length + 1}" style="text-align:center;padding:40px;color:#94a3b8">No employees found.</td></tr>`;
+    html += `<tr><td colspan="${cols.length + 1}" style="text-align:center;padding:40px;color:#94a3b8">No employees match the current filters.</td></tr>`;
   }
 
   for (const emp of emps) {
@@ -87,7 +104,7 @@ function renderPersonnel() {
       <label style="font-size:12px;display:inline-flex;align-items:center;gap:4px;margin-right:8px">
         <input type="checkbox" ${emp.active===false?'':'checked'} onchange="window.toggleEmployeeActive(${emp.id},this.checked)">Active
       </label>
-      <button class="btn-icon" title="Delete" onclick="window.deleteEmpPersonnel(${emp.id})">🗑</button>
+      <button class="btn-icon" title="Delete employee" onclick="window.deleteEmpPersonnel(${emp.id})">🗑</button>
     </td>`;
     html += `</tr>`;
   }
@@ -171,17 +188,62 @@ window.personnelSaveCell = function(input, empId, colId) {
 window.deleteEmpPersonnel = function(empId) {
   const emp = getEmp(empId);
   if (!emp) return;
-  if (!confirm(`Delete "${emp.name}"?`)) return;
+  if (!confirm(`Are you sure you want to delete "${emp.name}"?`)) return;
   DATA.employees = DATA.employees.filter(e => e.id !== empId);
   document.getElementById('app-main').innerHTML = renderPersonnel();
 };
 
-window.openAddColumnModal = function() {
-  const html = `<div class="modal-header"><h3>➕ New Column</h3>
+window.openInactiveModal = function() {
+  const inactive = DATA.employees
+    .filter(e => e.active === false)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  let rows = '';
+  if (!inactive.length) {
+    rows = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">No inactive employees found.</td></tr>';
+  } else {
+    rows = inactive.map(emp => `
+      <tr>
+        <td>${emp.name}</td>
+        <td>${groupLabel(emp.group)}</td>
+        <td>${emp.discipline === 'mec' ? 'Mechanical' : 'Electrical'}</td>
+        <td>${regimeLabel(emp.regime)}</td>
+        <td><button class="btn btn-primary btn-sm" onclick="window.restoreEmployee(${emp.id})">Restore</button></td>
+      </tr>
+    `).join('');
+  }
+
+  const html = `<div class="modal-header"><h3>Inactive Employees</h3>
     <button class="modal-close" onclick="window.closeModal()">×</button></div>
   <div class="modal-body">
-    <div class="form-group"><label>Column name *</label><input type="text" id="nc-label" placeholder="Ex: Shift, Certification"></div>
-    <div class="form-group"><label>Field (unique ID, no spaces) *</label><input type="text" id="nc-id" placeholder="Ex: shift"></div>
+    <div class="alerts-table-wrapper" style="box-shadow:none;border:1px solid #e2e8f0;border-radius:8px">
+      <table class="alerts-table">
+        <thead><tr><th>Name</th><th>Area</th><th>Discipline</th><th>Regime</th><th>Action</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="window.closeModal()">Close</button>
+  </div>`;
+  window.openModal(html, true);
+};
+
+window.restoreEmployee = function(empId) {
+  const emp = getEmp(empId);
+  if (!emp) return;
+  emp.active = true;
+  window.openInactiveModal();
+  if (getView().view === 'personnel') {
+    document.getElementById('app-main').innerHTML = renderPersonnel();
+  }
+};
+
+window.openAddColumnModal = function() {
+  const html = `<div class="modal-header"><h3>➕ Add Column</h3>
+    <button class="modal-close" onclick="window.closeModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label>Column Name *</label><input type="text" id="nc-label" placeholder="e.g. Shift, Certification"></div>
     <div class="form-group"><label>Type</label><select id="nc-type">
       <option value="text">Text</option>
       <option value="date">Date</option>
@@ -189,30 +251,36 @@ window.openAddColumnModal = function() {
   </div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveNewColumn()">Add</button>
+    <button class="btn btn-primary" onclick="window.saveNewColumn()">Add Column</button>
   </div>`;
   window.openModal(html);
 };
 
 window.saveNewColumn = function() {
   const label = document.getElementById('nc-label').value.trim();
-  const id = document.getElementById('nc-id').value.trim().replace(/\s+/g,'_');
-  if (!label || !id) { alert('Name and ID are required.'); return; }
-  if (DATA.personnelColumns.find(c => c.id === id)) { alert('ID already exists.'); return; }
+  if (!label) { alert('Please enter a column name.'); return; }
+  let id = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  if (!id) id = 'column';
+  let suffix = 2;
+  const base = id;
+  while (DATA.personnelColumns.find(c => c.id === id)) {
+    id = `${base}_${suffix}`;
+    suffix += 1;
+  }
   DATA.personnelColumns.push({ id, label, type: document.getElementById('nc-type').value });
   window.closeModal();
   document.getElementById('app-main').innerHTML = renderPersonnel();
 };
 
 window.deleteColumn = function(colId) {
-  if (!confirm('Remove this column?')) return;
+  if (!confirm('Are you sure you want to delete this column?')) return;
   DATA.personnelColumns = DATA.personnelColumns.filter(c => c.id !== colId);
   document.getElementById('app-main').innerHTML = renderPersonnel();
 };
 
 window.openManageSispat = function() {
   const colorOptions = ['purple','blue','teal','gray','orange','green'];
-  const html = `<div class="modal-header"><h3>🏷️ SISPAT Values</h3>
+  const html = `<div class="modal-header"><h3>🏷️ Manage Sispat Values</h3>
     <button class="modal-close" onclick="window.closeModal()">×</button></div>
   <div class="modal-body">
     <table class="alerts-table" style="margin-bottom:18px"><thead><tr><th>ID</th><th>Label</th><th>Color</th><th></th></tr></thead><tbody>
@@ -222,10 +290,10 @@ window.openManageSispat = function() {
         <td><button class="btn btn-danger btn-sm" onclick="window.deleteSispat('${s.id}')">Delete</button></td>
       </tr>`).join('')}
     </tbody></table>
-    <h4 style="margin-bottom:10px;color:var(--navy)">➕ New Value</h4>
+    <h4 style="margin-bottom:10px;color:var(--navy)">➕ Add Value</h4>
     <div class="form-row">
-      <div class="form-group"><label>ID (no spaces)</label><input type="text" id="sv-id" placeholder="Ex: petrobras"></div>
-      <div class="form-group"><label>Label</label><input type="text" id="sv-label" placeholder="Ex: Petrobras"></div>
+      <div class="form-group"><label>ID (no spaces)</label><input type="text" id="sv-id" placeholder="e.g. petrobras"></div>
+      <div class="form-group"><label>Label</label><input type="text" id="sv-label" placeholder="e.g. Petrobras"></div>
     </div>
     <div class="form-group"><label>Color</label><select id="sv-color">
       ${colorOptions.map(c => `<option value="${c}">${c}</option>`).join('')}
@@ -233,13 +301,13 @@ window.openManageSispat = function() {
   </div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Close</button>
-    <button class="btn btn-primary" onclick="window.saveSispat()">Add</button>
+    <button class="btn btn-primary" onclick="window.saveSispat()">Add Value</button>
   </div>`;
   window.openModal(html, true);
 };
 
 window.deleteSispat = function(id) {
-  if (!confirm('Delete this SISPAT value?')) return;
+  if (!confirm('Are you sure you want to delete this Sispat value?')) return;
   DATA.sispatValues = DATA.sispatValues.filter(s => s.id !== id);
   window.closeModal();
 };
@@ -247,7 +315,7 @@ window.deleteSispat = function(id) {
 window.saveSispat = function() {
   const id = document.getElementById('sv-id').value.trim().replace(/\s+/g,'_');
   const label = document.getElementById('sv-label').value.trim();
-  if (!id || !label) { alert('ID and label are required.'); return; }
+  if (!id || !label) { alert('Please enter both an ID and a label.'); return; }
   DATA.sispatValues.push({ id, label, color: document.getElementById('sv-color').value });
   window.closeModal();
 };
@@ -276,16 +344,16 @@ window.openAddEmpPersonnelModal = function() {
       <option value="ele">Electrical</option><option value="mec">Mechanical</option>
     </select></div>
     <div class="form-group"><label>Regime</label><select id="pn-regime">
-      <option value="offshore">Offshore</option><option value="onshore">Onshore</option><option value="mixed">Mixed</option>
+      <option value="offshore">Offshore</option><option value="onshore">Onshore</option>
     </select></div>
   </div>`;
 
-  const html = `<div class="modal-header"><h3>➕ New Employee</h3>
+  const html = `<div class="modal-header"><h3>➕ Add Employee</h3>
     <button class="modal-close" onclick="window.closeModal()">×</button></div>
   <div class="modal-body">${fields}</div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveEmpPersonnel()">Add</button>
+    <button class="btn btn-primary" onclick="window.saveEmpPersonnel()">Add Employee</button>
   </div>`;
   window.openModal(html, true);
 };
@@ -293,7 +361,7 @@ window.openAddEmpPersonnelModal = function() {
 window.saveEmpPersonnel = function() {
   const nameEl = document.getElementById('pn-nome') || document.getElementById('pn-name');
   const name = nameEl ? nameEl.value.trim() : '';
-  if (!name) { alert('Name is required.'); return; }
+  if (!name) { alert('Please enter a name.'); return; }
   const newEmp = {
     id: genId(), name,
     group: document.getElementById('pn-area')?.value || DATA.groups[0]?.id || '',
@@ -353,8 +421,8 @@ function renderHMH() {
       <td style="text-align:center">${doc.alertDays || 90}</td>
       <td style="max-width:220px;white-space:normal;font-size:12px;color:#64748b">${doc.obs || ''}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="window.openEditHMHModal('${doc.id}')">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="window.deleteHMHDoc('${doc.id}')">🗑</button>
+        <button class="btn btn-ghost btn-sm" title="Edit document" onclick="window.openEditHMHModal('${doc.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" title="Delete document" onclick="window.deleteHMHDoc('${doc.id}')">🗑</button>
       </td>
     </tr>`;
   }
@@ -381,12 +449,12 @@ function hmhDocFormHTML(doc) {
 }
 
 window.openAddHMHModal = function() {
-  const html = `<div class="modal-header"><h3>➕ New HMH Document</h3>
+  const html = `<div class="modal-header"><h3>➕ Add HMH Document</h3>
     <button class="modal-close" onclick="window.closeModal()">×</button></div>
   <div class="modal-body">${hmhDocFormHTML()}</div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveHMHDoc(null)">Save</button>
+    <button class="btn btn-primary" onclick="window.saveHMHDoc(null)">Add Document</button>
   </div>`;
   window.openModal(html);
 };
@@ -399,14 +467,14 @@ window.openEditHMHModal = function(id) {
   <div class="modal-body">${hmhDocFormHTML(doc)}</div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveHMHDoc('${id}')">Save</button>
+    <button class="btn btn-primary" onclick="window.saveHMHDoc('${id}')">Save Changes</button>
   </div>`;
   window.openModal(html);
 };
 
 window.saveHMHDoc = function(id) {
   const name = document.getElementById('hd-name').value.trim();
-  if (!name) { alert('Name is required.'); return; }
+  if (!name) { alert('Please enter a name.'); return; }
   const data = {
     name,
     category: document.getElementById('hd-cat').value.trim(),
@@ -428,7 +496,7 @@ window.saveHMHDoc = function(id) {
 };
 
 window.deleteHMHDoc = function(id) {
-  if (!confirm('Delete this document?')) return;
+  if (!confirm('Are you sure you want to delete this document?')) return;
   DATA.hmhDocuments = (DATA.hmhDocuments||[]).filter(d => d.id !== id);
   document.getElementById('app-main').innerHTML = renderHMH();
 };

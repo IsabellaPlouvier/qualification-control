@@ -9,7 +9,7 @@ function parseDate(str) {
 function formatDate(str) {
   const d = parseDate(str);
   if (!d) return '';
-  return d.toLocaleDateString('pt-BR');
+  return d.toLocaleDateString('en-GB');
 }
 function daysUntil(str) {
   const d = parseDate(str);
@@ -33,8 +33,8 @@ function statusLabel(s) {
     missing:'Missing', na:'N/A', not_applicable:'N/A' }[s] || s;
 }
 function renewalShort(id) {
-  const map = { not_requested:'', requested_hr:'Sol. RH',
-    scheduled:'Agendado', waiting_certificate:'Ag. Cert.', renewed:'Renovado' };
+  const map = { not_requested:'', requested_hr:'Requested',
+    scheduled:'Scheduled', waiting_certificate:'Awaiting Cert.', renewed:'Renewed' };
   return map[id] || '';
 }
 function getInitials(name) {
@@ -45,7 +45,7 @@ function groupLabel(id) {
   return g ? g.name : id;
 }
 function regimeLabel(r) {
-  return { offshore:'Offshore', onshore:'Onshore', mixed:'Offshore/Onshore' }[r] || r;
+  return { offshore:'Offshore', onshore:'Onshore', mixed:'Onshore' }[r] || r;
 }
 function getEmp(id) { return DATA.employees.find(e=>e.id===id); }
 function getReq(id) { return DATA.requirements.find(r=>r.id===id); }
@@ -58,7 +58,7 @@ function clientBadgeClass(client) {
 function sispatBadge(val) {
   const sv = DATA.sispatValues.find(s=>s.id===val);
   const label = sv ? sv.label : val;
-  const colorMap = { purple:'sispat-constellation', blue:'sispat-foresea', teal:'sispat-hmh', gray:'sispat-inativo', orange:'sispat-orange', green:'sispat-green' };
+  const colorMap = { purple:'sispat-constellation', blue:'sispat-foresea', teal:'sispat-hmh', gray:'sispat-inactive', orange:'sispat-orange', green:'sispat-green' };
   const cls = sv ? (colorMap[sv.color] || 'sispat-default') : 'sispat-default';
   return `<span class="sispat-badge ${cls}">${label||''}</span>`;
 }
@@ -237,7 +237,8 @@ function renderOverview() {
   let html = `<div class="page-title">
     <span>📋</span> Area Overview
     <div class="page-title-actions">
-      <button class="btn btn-ghost" onclick="window.openManageReqs()">⚙️ Requirements</button>
+      <button class="btn btn-ghost" onclick="window.openInactiveModal()">👁 View Inactive</button>
+      <button class="btn btn-ghost" onclick="window.openManageReqs()">⚙️ Manage Requirements</button>
     </div>
   </div>`;
 
@@ -257,7 +258,7 @@ function renderOverview() {
 
   const groups = DATA.groups.filter(g => groupFilter==='all' || g.id===groupFilter);
   for (const group of groups) {
-    let emps = DATA.employees.filter(e => e.group===group.id);
+    let emps = DATA.employees.filter(e => e.group===group.id && e.active !== false);
     if (discFilter!=='all') emps = emps.filter(e => e.discipline===discFilter);
     emps.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     if (emps.length===0) continue;
@@ -288,7 +289,7 @@ function renderOverview() {
       <span class="group-name">${group.name}</span>
       <span class="group-badge">${regimeLabel(group.regime)}</span>
       <span class="group-count">${emps.length} employee${emps.length!==1?'s':''}</span>
-      <button class="btn-ampliar" onclick="event.stopPropagation();window.openFullscreen('${group.id}',this)">⛶ Expand</button>
+      <button class="btn-ampliar" onclick="event.stopPropagation();window.openFullscreen('${group.id}',this)">⛶ Fullscreen</button>
     </div>`;
     html += `<div class="group-body">`;
     html += renderGroupTable(emps, visibleReqs, group.id);
@@ -304,7 +305,7 @@ function renderGroupTable(emps, reqs, groupId) {
   html += `<th>Actions</th></tr></thead><tbody>`;
 
   for (const emp of emps) {
-    html += `<tr${emp.active===false?' style="opacity:.55"':''}>`;
+    html += `<tr>`;
     html += `<td class="col-name"><a class="employee-link" href="#employee/${emp.id}">${emp.name}
       <span class="disc-badge disc-${emp.discipline}">${emp.discipline.toUpperCase()}</span></a></td>`;
     for (const req of reqs) {
@@ -326,10 +327,7 @@ function renderGroupTable(emps, reqs, groupId) {
       html += `<td class="cell-${status}" onclick="window.openCellPopup(${emp.id},'${req.id}',this)"><div class="cell-content">${inner}</div></td>`;
     }
     html += `<td style="white-space:nowrap">
-      <label style="font-size:12px;display:inline-flex;align-items:center;gap:4px;margin-right:8px">
-        <input type="checkbox" ${emp.active===false?'':'checked'} onchange="window.toggleEmployeeActive(${emp.id},this.checked)">Active
-      </label>
-      <button class="btn-icon" title="Delete" onclick="window.deleteEmp(${emp.id})">🗑</button>
+      <button class="btn-icon" title="Delete employee" onclick="window.deleteEmp(${emp.id})">🗑</button>
     </td>`;
     html += `</tr>`;
   }
@@ -348,7 +346,7 @@ window.toggleGroup = function(groupId) {
 
 window.openFullscreen = function(groupId) {
   const group = DATA.groups.find(g=>g.id===groupId);
-  let emps = DATA.employees.filter(e=>e.group===groupId);
+  let emps = DATA.employees.filter(e=>e.group===groupId && e.active !== false);
 
   const allReqIds = [];
   for (const emp of emps) for (const rid of Object.keys(emp.requirements)) if (!allReqIds.includes(rid)) allReqIds.push(rid);
@@ -377,7 +375,7 @@ window.applyOverviewFilters = function() { renderAndMount(); };
 window.deleteEmp = function(empId) {
   const emp = getEmp(empId);
   if (!emp) return;
-  if (!confirm(`Delete "${emp.name}"? This action cannot be undone.`)) return;
+  if (!confirm(`Are you sure you want to delete "${emp.name}"? This action cannot be undone.`)) return;
   DATA.employees = DATA.employees.filter(e=>e.id!==empId);
   renderAndMount();
 };
@@ -409,27 +407,27 @@ window.openAddEmpModal = function() {
     </div>
     <div class="form-row">
       <div class="form-group"><label>Regime</label><select id="ae-regime">
-        <option value="offshore">Offshore</option><option value="onshore">Onshore</option><option value="mixed">Offshore/Onshore</option>
+        <option value="offshore">Offshore</option><option value="onshore">Onshore</option>
       </select></div>
       <div class="form-group"><label>Country</label><input type="text" id="ae-country" value="BR" placeholder="BR"></div>
     </div>
-    <div class="form-group"><label>Email</label><input type="text" id="ae-email" placeholder="email@empresa.com"></div>
+    <div class="form-group"><label>Email</label><input type="text" id="ae-email" placeholder="name@company.com"></div>
     <div class="form-group"><label>Position</label><input type="text" id="ae-funcao" placeholder="Role"></div>
     <div class="form-group"><label>CPF / Passport</label><input type="text" id="ae-cpfPassport" placeholder="000.000.000-00 or passport"></div>
-    <div class="form-group"><label>SISPAT Status</label><select id="ae-sispat">
+    <div class="form-group"><label>Sispat Status</label><select id="ae-sispat">
       ${DATA.sispatValues.map(s=>`<option value="${s.id}">${s.label}</option>`).join('')}
     </select></div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-ghost" onclick="window.closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="window.saveNewEmp()">Add</button>
+    <button class="btn btn-primary" onclick="window.saveNewEmp()">Add Employee</button>
   </div>`;
   window.openModal(html);
 };
 
 window.saveNewEmp = function() {
   const name = document.getElementById('ae-name').value.trim();
-  if (!name) { alert('Name is required.'); return; }
+  if (!name) { alert('Please enter a name.'); return; }
   const newEmp = {
     id: genId(), name,
     group: document.getElementById('ae-group').value,
@@ -458,20 +456,20 @@ window.openManageReqs = function() {
   for (const req of DATA.requirements) {
     html += `<tr><td>${req.name}</td><td>${req.shortName}</td>
       <td>${DATA.categoryLabels[req.category]||req.category}</td>
-      <td>${req.hasExpiry?'With expiry':'Checklist'}</td>
+        <td>${req.hasExpiry?'With Expiry':'Checklist'}</td>
       <td><button class="btn btn-danger btn-sm" onclick="window.deleteReq('${req.id}')">Delete</button></td></tr>`;
   }
   html += `</tbody></table>
-    <h4 style="margin-bottom:12px;color:var(--navy)">➕ New Requirement</h4>
+    <h4 style="margin-bottom:12px;color:var(--navy)">➕ Add Requirement</h4>
     <div class="form-row">
       <div class="form-group"><label>Name *</label><input type="text" id="nr-name" placeholder="Full name"></div>
-      <div class="form-group"><label>Short name *</label><input type="text" id="nr-short" placeholder="Ex: NR-35"></div>
+      <div class="form-group"><label>Short Name *</label><input type="text" id="nr-short" placeholder="e.g. NR-35"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Category</label><select id="nr-cat">
         ${Object.entries(DATA.categoryLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
       </select></div>
-      <div class="form-group"><label>Has expiry?</label><select id="nr-expiry">
+      <div class="form-group"><label>Has Expiry?</label><select id="nr-expiry">
         <option value="yes">Yes</option><option value="no">No</option>
       </select></div>
     </div>
@@ -485,7 +483,7 @@ window.openManageReqs = function() {
 };
 
 window.deleteReq = function(reqId) {
-  if (!confirm('Delete this requirement? It will be removed from all employees.')) return;
+  if (!confirm('Are you sure you want to delete this requirement? It will be removed from all employees.')) return;
   DATA.requirements = DATA.requirements.filter(r=>r.id!==reqId);
   DATA.employees.forEach(e => { delete e.requirements[reqId]; });
   window.closeModal();
@@ -495,7 +493,7 @@ window.deleteReq = function(reqId) {
 window.saveNewReq = function() {
   const name = document.getElementById('nr-name').value.trim();
   const shortName = document.getElementById('nr-short').value.trim();
-  if (!name||!shortName) { alert('Name and short name are required.'); return; }
+  if (!name||!shortName) { alert('Please enter a name and a short name.'); return; }
   const id = name.toLowerCase().replace(/[^a-z0-9]/g,'_');
   DATA.requirements.push({
     id, name, shortName,
@@ -572,12 +570,12 @@ function renderAlerts() {
     <th>Category</th><th>Status</th><th>Renewal Status</th>
   </tr>`;
   html += `<tr class="filter-row">
-    <td><input id="af-emp" placeholder="Filter..." value="${fEmp}" oninput="window.applyAlertFilters()"></td>
+    <td><input id="af-emp" placeholder="Filter" value="${fEmp}" oninput="window.applyAlertFilters()"></td>
     <td><select id="af-group" onchange="window.applyAlertFilters()">
       <option value="all">All</option>
       ${DATA.groups.map(g=>`<option value="${g.id}" ${fGroup===g.id?'selected':''}>${g.name}</option>`).join('')}
     </select></td>
-    <td><input id="af-req" placeholder="Filter..." value="${fReq}" oninput="window.applyAlertFilters()"></td>
+    <td><input id="af-req" placeholder="Filter" value="${fReq}" oninput="window.applyAlertFilters()"></td>
     <td><select id="af-cat" onchange="window.applyAlertFilters()">
       <option value="all">All</option>
       ${Object.entries(DATA.categoryLabels).map(([k,v])=>`<option value="${k}" ${fCat===k?'selected':''}>${v}</option>`).join('')}
@@ -647,7 +645,7 @@ function renderEmployee(id) {
   const initials = getInitials(emp.name);
   const sv = DATA.sispatValues.find(s=>s.id===emp.sispat);
 
-  let html = `<button class="card-back-btn" onclick="history.back()">← Back</button>`;
+  let html = `<button class="card-back-btn" onclick="history.back()">← Back to Overview</button>`;
   html += `<div class="employee-card"><div class="card-header">
     <div class="card-avatar">${initials}</div>
     <div class="card-header-info">
@@ -662,13 +660,13 @@ function renderEmployee(id) {
         ${emp.funcao?`<span class="card-meta-tag info">💼 ${emp.funcao}</span>`:''}
         ${(emp.cpfPassport || emp.cpf)?`<span class="card-meta-tag info">📋 CPF / Passport: ${emp.cpfPassport || emp.cpf}</span>`:''}
         ${emp.email?`<span class="card-meta-tag info">✉️ ${emp.email}</span>`:''}
-        ${emp.sispat?`<span class="card-meta-tag info">🏷️ SISPAT: ${sv?.label||emp.sispat}</span>`:''}
+        ${emp.sispat?`<span class="card-meta-tag info">🏷️ Sispat: ${sv?.label||emp.sispat}</span>`:''}
         ${emp.rg?`<span class="card-meta-tag info">🪪 RG: ${emp.rg}</span>`:''}
       </div>
     </div>
   </div><div class="card-body">`;
 
-  const cats = ['personal','hsse','training','health','customer'];
+  const cats = ['personal','employment','training','health','customer'];
   for (const cat of cats) {
     const reqs = DATA.requirements.filter(r=>r.category===cat);
     const applicable = reqs.filter(r=>emp.requirements[r.id] && emp.requirements[r.id].status!=='na');
@@ -690,7 +688,7 @@ function renderEmployee(id) {
         </select>`;
         if (cur==='scheduled') {
           html += `<input type="date" class="scheduled-date-input" value="${empReq.scheduledDate||''}"
-            onchange="window.updateScheduledDate(${emp.id},'${req.id}',this.value)" title="Scheduled date">`;
+            onchange="window.updateScheduledDate(${emp.id},'${req.id}',this.value)" title="Select scheduled date">`;
         }
       }
       html += `</div>`;
